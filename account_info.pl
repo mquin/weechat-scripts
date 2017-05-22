@@ -6,7 +6,7 @@ sub weechat_print_cb {
   my $message= $_[3];
   my ($plugin, $buffer, $args)=split /;/,$_[2];
   my ($server, $channel) = split /\./,$buffer,2;
-  my $nick;
+  my $nick='none';
   my $dnick;
 
   if ($args=~/^irc_(notice|privmsg)/) {
@@ -23,7 +23,7 @@ sub weechat_print_cb {
     my $account=weechat::infolist_string( $infolist, "account");
     if (!$account) {
       $dnick = "~$nick";
-    } elsif ($account && $account ne $nick) {
+    } elsif ($account && irclc($account) ne irclc($nick)) {
       $dnick="$nick($account)";
     } 
 
@@ -37,6 +37,13 @@ sub weechat_print_cb {
 }
 sub account_info_hook {
   weechat::hook_modifier("weechat_print", "weechat_print_cb", "");
+}
+
+sub irclc {
+  # converts a string to lower case, using rfc1459 casemapping
+  my $s=shift;
+  $s=~tr/A-Z[]\\^/a-z{}|~/;
+  return $s;
 }
 
 if (!weechat::register("account_info", "mquin", "0.1", "GPL2", "Rewrite irc nicknames to indicate services identification", "", ""))
